@@ -15,6 +15,7 @@
     "chart.js": "^2.7.2",
     "chartjs-node": "^1.7.1",
     "handlebars": "^4.0.11",
+    "inline-css": "^2.4.0",
     "mailgun-js": "^0.20.0"
   }
 }

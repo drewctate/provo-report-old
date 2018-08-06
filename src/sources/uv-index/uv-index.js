@@ -1,8 +1,11 @@
+// Libraries
 const axios = require('axios');
 const ChartjsNode = require('chartjs-node');
 const HandleBars = require('handlebars');
-const upload2S3 = require('../../utils/upload2S3');
 const fs = require('fs');
+
+// In-app
+const upload2S3 = require('../../utils/upload2S3');
 
 const UV_IDX_URL = 'https://iaspub.epa.gov/enviro/efservice/getEnvirofactsUVHOURLY/ZIP/84604/json';
 
@@ -50,6 +53,9 @@ function getUvChartOptions(data) {
             }]
         },
         options: {
+            legend: {
+                display: false
+            },
             scales: {
                 yAxes: [{
                     ticks: {

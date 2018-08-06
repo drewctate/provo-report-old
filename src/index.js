@@ -6,16 +6,11 @@ const mailgun = require('mailgun-js')({ apiKey: ENV.EMAIL.API_KEY, domain: ENV.E
 
 // In-app
 const UVSource = require('./sources/uv-index/uv-index');
+const EmailBuilder = require('./email-creator/email-creator');
 
 UVSource.harvest()
-    .then(data => {
-        const html = UVSource.generateHTML(data);
-        return `
-            <h1>Provo Report</h1>
-            <br>
-            ${html}     
-        `
-    })
+    .then(data => UVSource.generateHTML(data))
+    .then(cardContent => EmailBuilder.buildEmail([cardContent]))
     .then(emailContent => {
         const data = {
             from: 'Provo Report <info@provoreport.com>',

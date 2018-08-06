@@ -1,0 +1,15 @@
+<link rel="stylesheet" href="main.css">
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+        <td align="center">
+            <h1>Provo Report {{date}}</h1>
+        </td>
+    </tr>
+    <tr>
+        {{#each cards}}
+        <td align="center">
+            {{{this}}}
+        </td>
+        {{/each}}
+    </tr>
+</table>
