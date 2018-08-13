@@ -1,0 +1,15 @@
+<h3>BYU Events Today</h3>
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+    {{#each events}}
+    <tr>
+        <td>
+            <img src="{{this.thumbnail}}" alt="{{this.title}}">
+        </td>
+        <td>
+            <a href="{{this.url}}">{{this.title}}</a>
+            <p>{{this.time}}</p>
+            <p>{{this.location}}</p>
+        </td>
+    </tr>
+    {{/each}}
+</table>

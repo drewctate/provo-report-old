@@ -12,13 +12,32 @@ const UV_IDX_URL = 'https://iaspub.epa.gov/enviro/efservice/getEnvirofactsUVHOUR
 module.exports.harvest = _ =>
     axios.get(UV_IDX_URL)
         .then(resp => resp.data)
+        .then(data => {
+            /*
+            Sometimes the EPA returns this:
+            > -19202ORA-19202: Error occurred in XML processing
+            > ORA-29902: error in executing ODCIIndexStart() routine
+            > ORA-13209: internal error while reading SDO_INDEX_METADATA table
+            > ORA-06512: at "MDSYS.SDO_INDEX_METHOD_10I", line 543
+            > Error in URL. Please check the URL syntax and try again.  Email EnviroMail@epa.gov for assistance with the syntax.
+            */
+            if (data.indexOf('Error') != -1) {
+                throw Error(`Problem with response: ${data}`);
+            }
+            return data;
+        })
         .then(data => makeBarChartImage(data))
         .then(imgStream => upload2S3('uv-index.png', imgStream))
         .then(resourceUrl => {
             return { imgSrc: resourceUrl };
+        })
+        .catch(err => {
+            console.error(`uv-index:harvest ${err}`);
+            return { imgSrc: null };
         });
 
 module.exports.generateHTML = (args) => {
+    if (!args.imgSrc) return null
     const data = fs.readFileSync(__dirname + '/uv-index.hbs');
     const sourceHTML = data.toString();
     const template = HandleBars.compile(sourceHTML);
