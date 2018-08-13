@@ -5,11 +5,11 @@
             <h1>Provo Report {{date}}</h1>
         </td>
     </tr>
+    {{#each cards}}
     <tr>
-        {{#each cards}}
         <td align="center">
             {{{this}}}
         </td>
-        {{/each}}
     </tr>
+    {{/each}}
 </table>

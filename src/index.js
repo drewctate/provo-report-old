@@ -8,17 +8,25 @@ const { Builder } = require('selenium-webdriver');
 // In-app
 const UVSource = require('./sources/uv-index/uv-index');
 const BYUEventsCalendarSource = require('./sources/byu-events-calendar/byu-events-calendar');
+const UtahValleyEventsSource = require('./sources/utah-valley-events/utah-valley-events');
 const EmailBuilder = require('./email-creator/email-creator');
 
 (async function main() {
     let webdriver;
     try {
         webdriver = await new Builder().forBrowser('chrome').build();
+
         const byuEventsHTML = BYUEventsCalendarSource.generateHTML(
-            await BYUEventsCalendarSource.harvest(webdriver));
+            await BYUEventsCalendarSource.harvest(webdriver)
+        );
+
+        const utahValleyEventsHTML = UtahValleyEventsSource.generateHTML(
+            await UtahValleyEventsSource.harvest(webdriver)
+        );
+
         const uvHTML = UVSource.generateHTML(await UVSource.harvest());
 
-        const goodSources = [byuEventsHTML, uvHTML].filter(val => {
+        const goodSources = [byuEventsHTML, utahValleyEventsHTML, uvHTML].filter(val => {
             return val !== null;
         });
 
