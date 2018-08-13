@@ -18,6 +18,7 @@ async function harvest(driver) {
         await driver.get('https://www.utahvalley.com/events/');
         let todayURL = await driver.findElement(LOCATORS.TODAY_LINK).getAttribute('href');
         await driver.get(todayURL);
+        await driver.sleep(2000);
         const eventListingEls = await driver.findElements(LOCATORS.EVENT_LISTINGS);
         for (let el of eventListingEls) {
             let event = {};

@@ -16,6 +16,7 @@ async function harvest(driver) {
 
     try {
         await driver.get('https://calendar.byu.edu/');
+        await driver.sleep(2000);
         const eventListingEls = await driver.findElements(LOCATORS.EVENT_LISTINGS);
         for (let el of eventListingEls) {
             let event = {};
