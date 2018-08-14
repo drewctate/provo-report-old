@@ -3,10 +3,16 @@ const ENV = require('./environment/environment');
 
 // Libraries
 const mailgun = require('mailgun-js')({ apiKey: ENV.EMAIL.API_KEY, domain: ENV.EMAIL.DOMAIN });
+const fs = require('fs');
 const { Builder } = require('selenium-webdriver');
+const readline = require('readline');
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
 
 // In-app
-const UVSource = require('./sources/uv-index/uv-index');
+const WeatherSource = require('./sources/weather/weather');
 const UVGraphicSource = require('./sources/uv-index-graphic/uv-index-graphic');
 const BYUEventsCalendarSource = require('./sources/byu-events-calendar/byu-events-calendar');
 const UtahValleyEventsSource = require('./sources/utah-valley-events/utah-valley-events');
@@ -27,28 +33,40 @@ const EmailBuilder = require('./email-creator/email-creator');
 
         const uvGraphicHTML = UVGraphicSource.generateHTML(await UVGraphicSource.harvest(webdriver));
 
-        // const uvHTML = UVSource.generateHTML(await UVSource.harvest());
+        const weatherHTML = WeatherSource.generateHTML(await WeatherSource.harvest(webdriver));
 
-        const goodSources = [uvGraphicHTML, byuEventsHTML, utahValleyEventsHTML].filter(val => {
+        const goodSources = [weatherHTML, uvGraphicHTML, byuEventsHTML, utahValleyEventsHTML].filter(val => {
             return val !== null;
         });
 
         const emailContent = await EmailBuilder.buildEmail(goodSources);
+        fs.writeFileSync('example.html', emailContent);
 
-        const data = {
-            from: 'Provo Report <info@provoreport.com>',
-            to: 'drewctate@gmail.com',
-            subject: 'Provo Report',
-            html: emailContent
-        };
-
-        mailgun.messages().send(data, function (err, body) {
-            if (err) {
-                console.error(err);
-            } else {
-                console.log(body);
+        rl.question('Send email? [Y/n] ', (answer) => {
+            if (answer.trim() === 'n') {
+                console.log('Email cancelled');
             }
+            else {
+                const data = {
+                    from: 'Provo Report <info@provoreport.com>',
+                    to: 'Andrew Tate <drewctate@gmail.com>, Natalie Dickman <thenatterbug@gmail.com>, Spencer Cook <spencercook@gmail.com>',
+                    subject: 'Provo Report',
+                    html: emailContent
+                };
+
+                mailgun.messages().send(data, function (err, body) {
+                    if (err) {
+                        console.error(err);
+                    } else {
+                        console.log('Email successful!');
+                        console.log(body);
+                    }
+                });
+            }
+
+            rl.close();
         });
+
     }
     catch (err) {
         console.error(err);
