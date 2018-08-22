@@ -15,11 +15,13 @@ const LOCATORS = {
     WEATHER_PANEL: By.xpath('/html/body/div/div[2]/div[3]/div/div[7]/div/div/div[3]')
 };
 
-async function harvest(driver) {
+async function harvest(driver, timeSpan = 'day') {
     try {
         await driver.get(sourceUrl);
         await driver.sleep(2000);
-        await driver.findElement(LOCATORS.HOURLY_LINK).click();
+        if (timeSpan === 'day') {
+            await driver.findElement(LOCATORS.HOURLY_LINK).click();
+        }
         const b64 = await driver.takeScreenshot();
         const buf = new Buffer(b64.replace(/^data:image\/\w+;base64,/, ""), 'base64');
 
