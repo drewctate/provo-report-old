@@ -6,10 +6,6 @@ const mailgun = require('mailgun-js')({ apiKey: ENV.EMAIL.API_KEY, domain: ENV.E
 const fs = require('fs');
 const { Builder } = require('selenium-webdriver');
 const readline = require('readline');
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
 
 // In-app
 const WeatherSource = require('./sources/weather/weather');
@@ -17,6 +13,9 @@ const UVGraphicSource = require('./sources/uv-index-graphic/uv-index-graphic');
 const BYUEventsCalendarSource = require('./sources/byu-events-calendar/byu-events-calendar');
 const UtahValleyEventsSource = require('./sources/utah-valley-events/utah-valley-events');
 const EmailBuilder = require('./email-creator/email-creator');
+
+// Utils
+const deployWebsite = require('./utils/deploy');
 
 (async function main() {
     let webdriver;
@@ -40,33 +39,43 @@ const EmailBuilder = require('./email-creator/email-creator');
         });
 
         const emailContent = await EmailBuilder.buildEmail(goodSources);
-        fs.writeFileSync('example.html', emailContent);
+        fs.writeFileSync('index.html', emailContent);
 
-        rl.question('Send email? [Y/n] ', (answer) => {
-            if (answer.trim() === 'n') {
-                console.log('Email cancelled');
-            }
-            else {
-                const data = {
-                    from: 'Provo Report <info@provoreport.com>',
-                    to: 'Andrew Tate <drewctate@gmail.com>, Natalie Dickman <thenatterbug@gmail.com>, Spencer Cook <spencercook@gmail.com>',
-                    subject: 'Provo Report',
-                    html: emailContent
-                };
+        let deployRes = await deployWebsite();
 
-                mailgun.messages().send(data, function (err, body) {
-                    if (err) {
-                        console.error(err);
-                    } else {
-                        console.log('Email successful!');
-                        console.log(body);
-                    }
-                });
-            }
+        console.log(`Website deployed! ${deployRes}`);
 
-            rl.close();
-        });
+        if (process.argv.length > 2 && process.argv[2] !== '--no-email') {
+            const rl = readline.createInterface({
+                input: process.stdin,
+                output: process.stdout
+            });
 
+            rl.question('Send email? [Y/n] ', (answer) => {
+                if (answer.trim() === 'n') {
+                    console.log('Email cancelled');
+                }
+                else {
+                    const data = {
+                        from: 'Provo Report <info@provoreport.com>',
+                        to: 'Andrew Tate <drewctate@gmail.com>, Natalie Dickman <thenatterbug@gmail.com>, Spencer Cook <spencercook@gmail.com>',
+                        subject: 'Provo Report',
+                        html: emailContent
+                    };
+
+                    mailgun.messages().send(data, function (err, body) {
+                        if (err) {
+                            console.error(err);
+                        } else {
+                            console.log('Email successful!');
+                            console.log(body);
+                        }
+                    });
+                }
+
+                rl.close();
+            });
+        }
     }
     catch (err) {
         console.error(err);
