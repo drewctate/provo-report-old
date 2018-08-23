@@ -43,7 +43,7 @@ const deployWebsite = require('./utils/deploy');
 
         let deployRes = await deployWebsite();
 
-        console.log(`Website deployed! ${deployRes}`);
+        console.log(`Website deployed! ${JSON.stringify(deployRes)}`);
 
         if (process.argv.length > 2 && process.argv[2] !== '--no-email') {
             const rl = readline.createInterface({

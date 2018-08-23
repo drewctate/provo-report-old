@@ -16,6 +16,8 @@ module.exports = (indexHTMLPath = './index.html') => {
             Bucket: bucketName,
             Key: fname,
             Body: buffer,
+            ContentType: 'text/html',
+            ContentDisposition: 'inline',
             ACL: 'public-read'
         }, function (err, data) {
             if (err) {
