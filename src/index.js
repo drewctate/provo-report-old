@@ -17,26 +17,13 @@ const EmailBuilder = require('./email-creator/email-creator');
 // Utils
 const deployWebsite = require('./utils/deploy');
 
+
 (async function main() {
     let webdriver;
     try {
         webdriver = await new Builder().forBrowser('chrome').build();
 
-        const byuEventsHTML = BYUEventsCalendarSource.generateHTML(
-            await BYUEventsCalendarSource.harvest(webdriver)
-        );
-
-        const utahValleyEventsHTML = UtahValleyEventsSource.generateHTML(
-            await UtahValleyEventsSource.harvest(webdriver)
-        );
-
-        const uvGraphicHTML = UVGraphicSource.generateHTML(await UVGraphicSource.harvest(webdriver));
-
-        const weatherHTML = WeatherSource.generateHTML(await WeatherSource.harvest(webdriver));
-
-        const goodSources = [weatherHTML, uvGraphicHTML, byuEventsHTML, utahValleyEventsHTML].filter(val => {
-            return val !== null;
-        });
+        const goodSources = await getGoodSources(webdriver);
 
         const emailContent = await EmailBuilder.buildEmail(goodSources);
         fs.writeFileSync('index.html', emailContent);
@@ -44,6 +31,7 @@ const deployWebsite = require('./utils/deploy');
         let deployRes = await deployWebsite();
 
         console.log(`Website deployed! ${JSON.stringify(deployRes)}`);
+
 
         if (process.argv.length > 2 && process.argv[2] !== '--no-email') {
             const rl = readline.createInterface({
@@ -56,21 +44,7 @@ const deployWebsite = require('./utils/deploy');
                     console.log('Email cancelled');
                 }
                 else {
-                    const data = {
-                        from: 'Provo Report <info@provoreport.com>',
-                        to: 'Andrew Tate <drewctate@gmail.com>, Natalie Dickman <thenatterbug@gmail.com>, Spencer Cook <spencercook@gmail.com>',
-                        subject: 'Provo Report',
-                        html: emailContent
-                    };
-
-                    mailgun.messages().send(data, function (err, body) {
-                        if (err) {
-                            console.error(err);
-                        } else {
-                            console.log('Email successful!');
-                            console.log(body);
-                        }
-                    });
+                    sendEmail(emailContent);
                 }
 
                 rl.close();
@@ -83,4 +57,53 @@ const deployWebsite = require('./utils/deploy');
     finally {
         await webdriver.quit();
     }
-})(); 
+})();
+
+/**
+ * Sends the email
+ * @param {html} emailContent
+ */
+function sendEmail(emailContent) {
+    const data = {
+        from: 'Provo Report <info@provoreport.com>',
+        to: 'Andrew Tate <drewctate@gmail.com>, Natalie Dickman <thenatterbug@gmail.com>, Spencer Cook <spencercook@gmail.com>',
+        subject: 'Provo Report',
+        html: emailContent
+    };
+
+    return new Promise((resolve, reject) => {
+        mailgun.messages().send(data, function (err, body) {
+            if (err) {
+                console.error(err);
+                reject(err);
+            } else {
+                console.log('Email successful!');
+                resolve(body)
+            }
+        });
+    })
+}
+
+/**
+ * Gets the HTML for the sources that don't return null from their generateHTML functions
+ * @param {*} webdriver 
+ */
+async function getGoodSources(webdriver) {
+    const byuEventsHTML = BYUEventsCalendarSource.generateHTML(
+        await BYUEventsCalendarSource.harvest(webdriver)
+    );
+
+    const utahValleyEventsHTML = UtahValleyEventsSource.generateHTML(
+        await UtahValleyEventsSource.harvest(webdriver)
+    );
+
+    const uvGraphicHTML = UVGraphicSource.generateHTML(await UVGraphicSource.harvest(webdriver));
+
+    const weatherHTML = WeatherSource.generateHTML(await WeatherSource.harvest(webdriver));
+
+    const goodSources = [weatherHTML, uvGraphicHTML, byuEventsHTML, utahValleyEventsHTML].filter(val => {
+        return val !== null;
+    });
+
+    return goodSources;
+}

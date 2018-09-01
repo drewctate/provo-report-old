@@ -21,7 +21,7 @@ async function harvest(driver) {
         await driver.sleep(2000);
         const eventListingEls = await driver.findElements(LOCATORS.EVENT_LISTINGS);
         for (let el of eventListingEls) {
-            let event = {};
+            let event = {}
             titleLinkEl = await el.findElement(LOCATORS.EVENT_TITLE_LINK);
             event.title = await titleLinkEl.getText();
             event.url = await titleLinkEl.getAttribute('href');
